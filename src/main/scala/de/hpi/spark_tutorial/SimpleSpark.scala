@@ -25,33 +25,25 @@ object SimpleSpark extends App {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
 
-    //------------------------------------------------------------------------------------------------------------------
-    // Lamda basics (for Scala)
-    //------------------------------------------------------------------------------------------------------------------
+    val optionsPath: Symbol = 'path;
+    val optionsCore: Symbol = 'cores;
+    // CLI Parsing done like this: https://stackoverflow.com/a/3183991
+    val arglist = args.toList
+    type OptionMap = Map[Symbol, Any]
 
-    //spark uses user defined functions to transform data, lets first look at how functions are defined in scala:
-    val smallListOfNumbers = List(1, 2, 3, 4, 5)
-
-    // A Scala map function from int to double
-    def squareAndAdd(i: Int): Double = {
-      i * 2 + 0.5
+    def nextOption(map : OptionMap, list: List[String]) : OptionMap = {
+      def isSwitch(s : String) = (s(0) == '-')
+      list match {
+        case Nil => map
+        case "--path" :: value :: tail =>
+          nextOption(map ++ Map(optionsPath -> value), tail)
+        case "--cores" :: value :: tail =>
+          nextOption(map ++ Map(optionsCore -> value.toInt), tail)
+      }
     }
-    // A Scala map function defined in-line (without curly brackets)
-    def squareAndAdd2(i: Int): Double = i * 2 + 0.5
-    // A Scala map function inferring the return type
-    def squareAndAdd3(i: Int) = i * 2 + 0.5
-    // An anonymous Scala map function assigned to a variable
-    val squareAndAddFunction = (i: Int) => i * 2 + 0.5
+    // options now has the appropriate options and defaults
+    val options = nextOption(Map(optionsPath -> "TPCH", optionsPath -> 4),arglist)
 
-    println("---------------------------------------------------------------------------------------------------------")
-
-    // Different variants to apply the same function
-    println(smallListOfNumbers.map(squareAndAdd))
-    println(smallListOfNumbers.map(squareAndAdd2))
-    println(smallListOfNumbers.map(squareAndAdd3))
-    println(smallListOfNumbers.map(squareAndAddFunction))
-    println(smallListOfNumbers.map(i => i * 2 + 0.5)) // anonymous function; compiler can infers types
-    println(smallListOfNumbers.map(_ * 2 + 0.5)) // syntactic sugar: '_' maps to first (second, third, ...) parameter
 
     //------------------------------------------------------------------------------------------------------------------
     // Setting up a Spark Session
