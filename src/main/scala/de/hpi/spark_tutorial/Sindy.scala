@@ -44,10 +44,22 @@ object Sindy {
       .groupByKey
       // Step Four: We build only attribute Sets
       .map(_._2.reduce(_++_))
-      .toDS
-
+      // DataStructure is like this now: Set(Set(attributes))
     // ####################################################################### Figure 2
-
-    //TODO Implement strategy to work with it
+      // Step Five: Building Inclusion Lists
+      // for every Set of AttributeNames map over all columnNames and filter all columnNames for that one
+      .flatMap(columnNames => columnNames.map(columnName => (columnName, columnNames.filter(!columnName.equals(_)))))
+      // Step Six: partition by key
+      .groupByKey
+      // Step Seven: We aggregate by intersecting
+      // We now only build intersections of the set as
+      .map(tpl => (tpl._1, tpl._2.reduce(_ intersect _)))
+      // We sort out empty Sets
+      .filter(_._2.size>0)
+      .toDS
+      // We sort them by key alphabetically
+      .sort($"_1")
+      // We make a string out of them and print it
+      .foreach(ind => println(ind._1 + " < " + ind._2.mkString(", ")))
   }
 }
