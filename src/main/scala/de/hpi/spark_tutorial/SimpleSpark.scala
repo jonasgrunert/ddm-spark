@@ -48,7 +48,13 @@ object SimpleSpark extends App {
 
     // Getting all Filenames from the specified folder
 
-    val currDir = Paths.get(System.getProperty("user.dir"), options.get(optionsPath).get.toString).toFile.listFiles();
+    val currDir = Paths
+      .get(System.getProperty("user.dir"), options.get(optionsPath).get.toString)
+      .toFile
+      .listFiles()
+      .map(_.getAbsolutePath)
+      .filter(_.endsWith(".csv"))
+      .toList
 
 
     //------------------------------------------------------------------------------------------------------------------
@@ -67,10 +73,6 @@ object SimpleSpark extends App {
     // Inclusion Dependency Discovery (Homework)
     //------------------------------------------------------------------------------------------------------------------
 
-    //TODO read all the others too
-    val inputs = List("region", "nation"/*, "supplier", "customer", "part", "lineitem", "orders"*/)
-      .map(name => s"data/TPCH/tpch_$name.csv")
-
-    Sindy.discoverINDs(inputs, spark)
+    Sindy.discoverINDs(currDir, spark)
   }
 }
