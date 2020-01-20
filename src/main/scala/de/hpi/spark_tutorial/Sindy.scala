@@ -18,7 +18,7 @@ object Sindy {
     // ####################################################################### Figure 1
 
     // Step One: Creating tuples of (value, column_name) e.g. (AFRICA, R_NAME)
-    val candidatesTuples = dataframes
+    val candidatesTuples: Unit = dataframes
       .map(df => {
         // Column Names as Sets so we can use Set operations later on
         val columns = df.columns.map(Set(_))
@@ -61,11 +61,11 @@ object Sindy {
       // We now only build intersections of the set as
       .map(tpl => (tpl._1, tpl._2.reduce(_ intersect _)))
       // We sort out empty Sets
-      .filter(_._2.size>0)
+      .filter(_._2.nonEmpty)
       // We make a string out of them
       .map(ind => ind._1 + " < " + ind._2.mkString(", "))
       .collect
-      // We sort them by key alphabetically, TODO not always sorts correctly
+      // We sort them by key alphabetically
       .sorted
       .foreach(println)
   }
