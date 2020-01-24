@@ -29,21 +29,17 @@ object Sindy {
           .flatMap(row => row.toSeq.map(_.toString) zip columns)
           // Step Two: For every same value collect all columnnames (value, columns_names)
           // e.g. (0, {N_NATIONKEY, N_REGIONKEY, R_REGIONKEY)
-          // That groups them by _1, so same values together
-          .groupByKey
-          // that maps on each value once and combines them on a table_basis
-          .map(group => {
-            //Takes in a tuple of (String, multiple Sets) and combines them into (String, all unique values from all Sets)
-            (group._1, group._2.reduce(_++_))
-          })
+          // That groups them by key, so same values together
+          // Takes in a iterable of multiple Sets) and combines them into (String, all unique values from all Sets)
+          .reduceByKey(_++_)
           .toDS
       })
       // Step Three: We partition globally
       .reduce(_ union _)
       .rdd
-      .groupByKey
       // Step Four: We build only attribute Sets
-      .map(_._2.reduce(_++_))
+      .reduceByKey(_++_)
+      .map(_._2)
       // DataStructure is like this now: Set(Set(attributes))
     // ####################################################################### Figure 2
       // Step Five: Building Inclusion Lists
@@ -56,10 +52,9 @@ object Sindy {
         )
       )
       // Step Six: partition by key
-      .groupByKey
       // Step Seven: We aggregate by intersecting
       // We now only build intersections of the set as
-      .map(tpl => (tpl._1, tpl._2.reduce(_ intersect _)))
+      .reduceByKey(_ intersect _)
       // We sort out empty Sets
       .filter(_._2.nonEmpty)
       // We make a string out of them
