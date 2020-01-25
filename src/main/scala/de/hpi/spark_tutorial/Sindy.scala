@@ -39,14 +39,13 @@ object Sindy {
       .rdd
       // Step Four: We build only attribute Sets
       .reduceByKey(_++_)
-      .map(_._2)
       // DataStructure is like this now: Set(Set(attributes))
     // ####################################################################### Figure 2
       // Step Five: Building Inclusion Lists
       // for every Set of AttributeNames map over all columnNames and filter all columnNames for that one
-      .flatMap(columnNames => columnNames
+      .flatMap(columnNames => columnNames._2
         .map(columnName =>
-          (columnName, columnNames
+          (columnName, columnNames._2
             .filter(!columnName.equals(_))
           )
         )
